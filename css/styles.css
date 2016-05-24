@@ -39,8 +39,10 @@ h3.date {
   display: none;
 }
 h2 {
-  font-size: 1.3em;
+  font-size: 1.4em;
   color: #6a6a6a;
+  font-weight: normal;
+  font-family: serif;
 }
 h3,
 h4 {
@@ -48,6 +50,7 @@ h4 {
 }
 h5 {
   margin: -12px 0 15px 0;
+  font-weight: normal;
 }
 h5.author:before {
   content: 'By: ';
@@ -58,6 +61,11 @@ h5.date:before {
   content: 'Date: ';
   font-style: italic;
   color: #505050;
+}
+hr {
+  margin: 10px 20% 20px 20%;
+  border: 0;
+  border-top: 1px dashed #303030;
 }
 p {
   text-align: justify;
