@@ -44,6 +44,9 @@ h2 {
   font-weight: normal;
   font-family: serif;
 }
+h2 span {
+  font-size: .7em;
+}
 h3,
 h4 {
   border-bottom: 1px solid #303030;
@@ -58,14 +61,19 @@ h5.author:before {
   color: #505050;
 }
 h5.date:before {
-  content: 'Date: ';
+  content: 'Published: ';
+  font-style: italic;
+  color: #505050;
+}
+h5.last-update:before {
+  content: 'Last Update: ';
   font-style: italic;
   color: #505050;
 }
 hr {
-  margin: 10px 20% 20px 20%;
+  margin: 20px 20% 20px 20%;
   border: 0;
-  border-top: 1px dashed #303030;
+  border-top: 1px dashed #505050;
 }
 p {
   text-align: justify;
