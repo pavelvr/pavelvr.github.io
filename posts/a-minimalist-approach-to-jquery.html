@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Pável Varela Rodríguez">
+  <meta name="keywords" content="minimalism, jquery">
+  <title>Infinite Fun – A minimalist approach to jQuery</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #303030; color: #cccccc; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #cccccc; background-color: #303030; }
+code > span.kw { color: #f0dfaf; } /* Keyword */
+code > span.dt { color: #dfdfbf; } /* DataType */
+code > span.dv { color: #dcdccc; } /* DecVal */
+code > span.bn { color: #dca3a3; } /* BaseN */
+code > span.fl { color: #c0bed1; } /* Float */
+code > span.ch { color: #dca3a3; } /* Char */
+code > span.st { color: #cc9393; } /* String */
+code > span.co { color: #7f9f7f; } /* Comment */
+code > span.ot { color: #efef8f; } /* Other */
+code > span.al { color: #ffcfaf; } /* Alert */
+code > span.fu { color: #efef8f; } /* Function */
+code > span.er { color: #c3bf9f; } /* Error */
+code > span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+code > span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
+code > span.sc { color: #dca3a3; } /* SpecialChar */
+code > span.vs { color: #cc9393; } /* VerbatimString */
+code > span.ss { color: #cc9393; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { } /* Variable */
+code > span.cf { color: #f0dfaf; } /* ControlFlow */
+code > span.op { color: #f0efd0; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
+code > span.at { } /* Attribute */
+code > span.do { color: #7f9f7f; } /* Documentation */
+code > span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
+code > span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
+code > span.in { color: #7f9f7f; font-weight: bold; } /* Information */
+  </style>
+  <link rel="stylesheet" href="../css/styles.css">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header>
+<h1 class="title">Infinite Fun</h1>
+<h2 class="author">Pável Varela Rodríguez</h2>
+<h3 class="date">2016-06-05</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../posts/index.html">Posts</a></li>
+<li><a href="../projects/index.html">Projects</a></li>
+<li><a href="../me.html">Me</a></li>
+</ul>
+</nav>
+<p><a href="index.html">Posts</a> » <em>...here</em></p>
+<h2 id="a-minimalist-approach-to-jquery">A minimalist approach to jQuery</h2>
+<h5 id="section" class="date">2016.06.05</h5>
+<p><a href="http://jquery.com/">jQuery</a> could be easily the best single thing happened to JavaScript. Since jQuery there is a reignited interest in JavaScript, browsers have been making their JavaScript engines more and more better, there is even a lot of people that is saying they are &quot;learning jQuery&quot; instead of &quot;learning JavaScript&quot; (as if jQuery was a language by itself). That is how good jQuery is.</p>
+<p>But, do we really need jQuery? Don't get me wrong, what I mean is: do we really need to start every single web project by including jQuery as one of the libraries we'll be using?</p>
+<p>Being an amazing library, jQuery offers a really good and useful set of functions, from it's CSS selector engine to AJAX, effects, etc. My point is: do we use all these functions, or at least most of them? I don't think so, but we include jQuery no matter what.</p>
+<p>Most of us use only the CSS selector engine to manipulate the DOM, attach functions to events, manipulate some CSS on the fly, and maybe do some AJAX calls. The size of the minified version of jQuery 1.11.3 is aproximately 95 KiB. How many of that bytes will I really be using on my project? 30%? Maybe 50%?</p>
+<p>The jQuery Team was kind enough to create this standalone library with only their great CSS selector engine called <a href="https://sizzlejs.com/">sizzle.js</a>, it's size is less than 20 KiB (v2.3.1-pre), so now we can do something like:</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="at">Sizzle</span>(<span class="st">&#39;a.external&#39;</span>).<span class="at">forEach</span>(<span class="kw">function</span>(externalLink) <span class="op">{</span>
+    <span class="va">externalLink</span>.<span class="at">target</span> <span class="op">=</span> <span class="st">&#39;_blank&#39;</span><span class="op">;</span>
+<span class="op">}</span>)<span class="op">;</span></code></pre></div>
+<p>You just lost all the other stuff available in jQuery though, even the most basic, like the <code>on()</code> function, used to attach callback functions to events. This is what I'm using, maybe it is too simplistic, but it's doing the job:</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="co">// doing &#39;return this;&#39; on every function so I can chain them</span>
+<span class="co">// Sizzle(&#39;ul#toolbar li&#39;)</span>
+<span class="co">//      .on(&#39;click&#39;, function() {</span>
+<span class="co">//          console.log(this.innerText);</span>
+<span class="co">//      })</span>
+<span class="co">//      .css({&#39;size&#39;: &#39;1.3em&#39;});</span>
+
+<span class="va">Object</span>.<span class="va">prototype</span>.<span class="at">on</span> <span class="op">=</span> <span class="kw">function</span> (evnt<span class="op">,</span> funct) <span class="op">{</span>
+    <span class="cf">if</span> (<span class="kw">this</span>.<span class="at">attachEvent</span>) <span class="op">{</span>
+        <span class="kw">this</span>.<span class="at">attachEvent</span>(<span class="st">&#39;on&#39;</span> <span class="op">+</span> evnt<span class="op">,</span> funct)
+    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span>
+        <span class="kw">this</span>.<span class="at">addEventListener</span>(evnt<span class="op">,</span> funct<span class="op">,</span> <span class="kw">false</span>)<span class="op">;</span>
+    <span class="op">}</span>
+
+    <span class="cf">return</span> <span class="kw">this</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="va">Array</span>.<span class="va">prototype</span>.<span class="at">on</span> <span class="op">=</span> <span class="kw">function</span> (evnt<span class="op">,</span> funct) <span class="op">{</span>
+    <span class="kw">this</span>.<span class="at">forEach</span>(<span class="kw">function</span>(element) <span class="op">{</span>
+        <span class="va">element</span>.<span class="at">on</span>(evnt<span class="op">,</span> funct)<span class="op">;</span>
+    <span class="op">}</span>)<span class="op">;</span>
+
+    <span class="cf">return</span> <span class="kw">this</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="va">Object</span>.<span class="va">prototype</span>.<span class="at">css</span> <span class="op">=</span> <span class="kw">function</span> (cssRules) <span class="op">{</span>
+    <span class="cf">for</span>(<span class="kw">var</span> attr <span class="kw">in</span> cssRules) <span class="op">{</span>
+        <span class="cf">if</span>(<span class="kw">typeof</span>(cssRules[attr]) <span class="op">!==</span> <span class="st">&quot;function&quot;</span>) <span class="op">{</span>
+            <span class="kw">this</span>.<span class="at">style</span>[attr] <span class="op">=</span> cssRules[attr]<span class="op">;</span>
+        <span class="op">}</span>
+    <span class="op">}</span>
+
+    <span class="cf">return</span> <span class="kw">this</span><span class="op">;</span>
+<span class="op">}</span>
+
+<span class="va">Array</span>.<span class="va">prototype</span>.<span class="at">css</span> <span class="op">=</span> <span class="kw">function</span> (cssRules) <span class="op">{</span>
+    <span class="kw">this</span>.<span class="at">forEach</span>(<span class="kw">function</span>(element) <span class="op">{</span>
+        <span class="va">element</span>.<span class="at">css</span>(cssRules)<span class="op">;</span>
+    <span class="op">}</span>)<span class="op">;</span>
+
+    <span class="cf">return</span> <span class="kw">this</span><span class="op">;</span>
+<span class="op">}</span></code></pre></div>
+<p>Then I use it this way:</p>
+<div class="sourceCode"><pre class="sourceCode javascript"><code class="sourceCode javascript"><span class="kw">var</span> loaded <span class="op">=</span> <span class="kw">function</span>() <span class="op">{</span>
+    <span class="va">console</span>.<span class="at">log</span>(<span class="st">&quot;Page loaded! Doing some cool stuff!&quot;</span>)<span class="op">;</span>
+
+    <span class="at">Sizzle</span>(<span class="st">&#39;a&#39;</span>).<span class="at">on</span>(<span class="st">&#39;click&#39;</span><span class="op">,</span> <span class="kw">function</span>() <span class="op">{</span>
+         <span class="co">// not quite useful, right?</span>
+        <span class="at">alert</span>(<span class="kw">this</span>.<span class="at">href</span>)<span class="op">;</span>
+    <span class="op">}</span>)
+    .<span class="at">css</span>(<span class="op">{</span>
+            <span class="st">&#39;text-decoration&#39;</span><span class="op">:</span> <span class="st">&#39;none&#39;</span><span class="op">,</span>
+            <span class="st">&#39;border-bottom&#39;</span><span class="op">:</span> <span class="st">&#39;1px dashed blue&#39;</span>
+    <span class="op">}</span>)<span class="op">;</span>
+<span class="op">}</span>
+
+<span class="va">window</span>.<span class="at">on</span>(<span class="st">&#39;load&#39;</span><span class="op">,</span> loaded)<span class="op">;</span></code></pre></div>
+<p>Once again let me be clear: jQuery is a great, amazing, beautiful library. What I'm trying to say here is: we tend to use prebuilt libraries, components, etc., without thinking even for a second if we really need them. Most of the time we need only one or two features from a library/component, features that we could write by ourself, with more or less success, in a relative short amount of time, but we don't stop to think about that. Maybe you could call it the culture of the prebuilt, or the culture of the libraries.</p>
+<p>This is a phenomenon I usually see in the Java or the .Net world. Huge-sized applications, with a lot of dependencies you can't understand what are they used for, because you don't see them in the functionality included into the final app.</p>
+<p>For example, a lot of people use DevExpress to build their UIs, maybe the Grid component, but the grid depends on another component, and this other component on another one, and so on. Finally, the application is about 20 MiB, and you just wanted to use the Grid because of it's filtering functionality. Flash news: the are a lot of grid components in github, with filtering functionality, they are open source, and depend on nothing else than WinForms! Also, they are considerably smaller.</p>
+<h4 id="pros-and-cons-of-a-minimalist-approach">Pros and Cons of a minimalist approach:</h4>
+<p><em>Pros</em>: Smaller, faster applications, with less dependencies and a considerably smaller memory footprint.</p>
+<p><em>Cons</em>: Sometimes we have to actually write some code (sorry, is this a con?).</p>
+<p><em><strong>Conclusion</strong></em>: If you <strong>really</strong> need a library, go for it! But, just take some time checking if there is an alternative, minimalist approach/solution. In my personal experience, this usually brings more benefits than not.</p>
+<div id="footer">
+<hr />
+<p id="social-links">
+<a href="http://www.github.com/pavelvr" title="Fork me on GitHub">pavelvr</a><span class="social-text-id">@github</span><br /> <a href="http://www.twitter.com/pavel_vr" title="Follow me on Twitter">pavel_vr</a><span class="social-text-id">@twitter</span><br /> <a href="http://www.linkedin.com/in/pavelvr" title="Add me on LinkedIn">pavelvr</a><span class="social-text-id">@linkedin</span><br /> <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;&#32;&#40;&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><span class="social-text-id">@gmail</span><br /> <br /> <a href="../rss.xml" title="RSS 2.0 Feed">rss</a> <span class="social-text-id">feed</span>
+</p>
+<hr />
+<p id="copyright">
+Text: <a href="https://creativecommons.org/">CC BY-NC-SA</a><br /> Code: <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3+</a><br /> <em>Havana</em>, <em>Cuba</em><br /> <em><strong>Infinite Fun</strong></em>, 2016
+</p>
+</div>
+<script type="text/javascript" src="../js/sizzle.min.js"></script>
+<script type="text/javascript" src="../js/my.js"></script>
+</body>
+</html>

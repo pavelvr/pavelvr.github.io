@@ -1,8 +1,38 @@
 /* your js code here */
 Object.prototype.on = function (evnt, funct) {
-	return (this.attachEvent)
-		? this.attachEvent('on' + evnt, funct)
-		: this.addEventListener(evnt, funct, false);
+	if (this.attachEvent) {
+		this.attachEvent('on' + evnt, funct)
+	} else {
+		this.addEventListener(evnt, funct, false);
+	}
+
+	return this;
+}
+
+Array.prototype.on = function (evnt, funct) {
+	this.forEach(function(element) {
+		element.on(evnt, funct);
+	});
+
+	return this;
+}
+
+Object.prototype.css = function (cssRules) {
+	for(var attr in cssRules) {
+		if(typeof(cssRules[attr]) !== "function") {
+			this.style[attr] = cssRules[attr];
+		}
+	}
+
+	return this;
+}
+
+Array.prototype.css = function (cssRules) {
+	this.forEach(function(element) {
+		element.css(cssRules);
+	});
+
+	return this;
 }
 
 function fixExternalLinksTarget()
