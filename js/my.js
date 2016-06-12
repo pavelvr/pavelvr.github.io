@@ -1,4 +1,10 @@
 /* your js code here */
+
+// doing 'return this;' on every function so I can chain them
+// Sizzle('ul#toolbar li')
+// 		.on('click', function() { console.log(this.innerText); })
+//  	.css({'size': '1.3em'});
+
 Object.prototype.on = function (evnt, funct) {
 	if (this.attachEvent) {
 		this.attachEvent('on' + evnt, funct)

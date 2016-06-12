@@ -7,7 +7,7 @@ body {
   padding-right: 10px;
   padding-bottom: 15px;
   max-width: 595px;
-  min-width: 360px;
+  min-width: 300px;
   border-left: 1px solid #303030;
 }
 header,
@@ -147,6 +147,8 @@ nav ul li a:hover {
   body {
     margin-left: 0;
     border: 0;
+    padding-left: 6px;
+    padding-right: 6px;
   }
   header,
   nav,
