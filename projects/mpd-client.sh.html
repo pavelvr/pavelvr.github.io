@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="author" content="Pável Varela Rodríguez">
+  <meta name="keywords" content="mpd-client, bash, mpd, mpc, music player daemon">
+  <title>Infinite Fun – mpd-client.sh</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #303030; color: #cccccc; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #cccccc; background-color: #303030; }
+code > span.kw { color: #f0dfaf; } /* Keyword */
+code > span.dt { color: #dfdfbf; } /* DataType */
+code > span.dv { color: #dcdccc; } /* DecVal */
+code > span.bn { color: #dca3a3; } /* BaseN */
+code > span.fl { color: #c0bed1; } /* Float */
+code > span.ch { color: #dca3a3; } /* Char */
+code > span.st { color: #cc9393; } /* String */
+code > span.co { color: #7f9f7f; } /* Comment */
+code > span.ot { color: #efef8f; } /* Other */
+code > span.al { color: #ffcfaf; } /* Alert */
+code > span.fu { color: #efef8f; } /* Function */
+code > span.er { color: #c3bf9f; } /* Error */
+code > span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+code > span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
+code > span.sc { color: #dca3a3; } /* SpecialChar */
+code > span.vs { color: #cc9393; } /* VerbatimString */
+code > span.ss { color: #cc9393; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { } /* Variable */
+code > span.cf { color: #f0dfaf; } /* ControlFlow */
+code > span.op { color: #f0efd0; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
+code > span.at { } /* Attribute */
+code > span.do { color: #7f9f7f; } /* Documentation */
+code > span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
+code > span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
+code > span.in { color: #7f9f7f; font-weight: bold; } /* Information */
+  </style>
+  <link rel="stylesheet" href="../css/styles.css">
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header>
+<h1 class="title">Infinite Fun</h1>
+<h2 class="author">Pável Varela Rodríguez</h2>
+<h3 class="date">2016-07-03</h3>
+</header>
+<nav id="TOC">
+<ul>
+<li><a href="../index.html">Home</a></li>
+<li><a href="../posts/index.html">Posts</a></li>
+<li><a href="../projects/index.html">Projects</a></li>
+<li><a href="../me.html">Me</a></li>
+</ul>
+</nav>
+<p><a href="index.html">Projects</a> » <em>...here</em></p>
+<h3 id="mpd-client.sh">mpd-client.sh</h3>
+<p>A simple mpc (Music Player Daemon's client) wrapper + libnotify to control your music via command line or keyboard shortcuts</p>
+<ul>
+<li><strong>Project Homepage</strong>: <a href="mpd-client.sh.html">http://pavelvr.github.io/projects/mpd-client.sh.html</a></li>
+<li><strong>Language</strong>: bash</li>
+<li><strong>License</strong>: GPLv3+</li>
+<li><strong>Platform</strong>: Linux/Unix + ALSA</li>
+<li><strong>Features</strong>:
+<ul>
+<li>A simple CLI API, with only a few commands, trying to keep it simple</li>
+<li>Starts/kills mpd, mpd client and mpd GUI client (configurable GUI client)</li>
+<li>Plays/pauses/stops music (starting mpd if needed)</li>
+<li>Controls volume</li>
+<li>Forward/rewind</li>
+<li>Displays libnotify notification with current state and song information</li>
+</ul></li>
+</ul>
+<p>In Linux I use <a href="http://plhk.ru/">echinus</a> or <a href="http://www.openbox.org/">OpenBox</a>, with a lot of custom keyboard shortcuts. Being able to control the volume is something I think should be really easy, with no need to use the mouse, the mouse scroll or even open a whole application just to mute it. The same for playing/pausing/stopping music, so, I write this kind of scripts in order to be able to link some actions to keyboard combinations.</p>
+<p>Here is the code:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co">#!/bin/sh</span>
+<span class="co">#</span>
+<span class="co"># mpd-client</span>
+<span class="co"># MPD Controlling Client</span>
+<span class="co"># Depends upon mpc </span>
+<span class="co">#</span>
+<span class="co"># Author: Pável Varela Rodríguez &lt;neonskull@gmail.com&gt;</span>
+<span class="co"># License: GPL v2</span>
+<span class="co"># </span>
+<span class="co"># Version: 0.1</span>
+<span class="co">#</span>
+
+<span class="ot">MPD_GUI_CLIENT=</span>ario
+
+<span class="ot">START_PAUSED=</span>true
+<span class="ot">STATE_FILE=</span><span class="st">&quot;</span><span class="ot">$HOME</span><span class="st">/.mpd/mpdstate&quot;</span>
+
+<span class="ot">CURRENT_FORMAT=</span><span class="st">&quot;%artist%;;%album%;;%title%;;&quot;</span>
+<span class="ot">ICON_THEME=</span><span class="st">&quot;OxygenRefit2-black-version&quot;</span>
+<span class="ot">ICON_SIZE=</span><span class="st">&quot;48x48&quot;</span>
+<span class="ot">PLAYING_ICON=</span><span class="st">&quot;/actions/player_play.png&quot;</span>
+<span class="ot">PAUSED_ICON=</span><span class="st">&quot;/actions/player_pause.png&quot;</span>
+
+<span class="fu">mpd_pid   ()</span> <span class="kw">{</span> <span class="kw">echo</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">pidof</span> mpd<span class="ot">)</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">start     ()</span>
+<span class="kw">{</span>
+    <span class="kw">if [</span> <span class="ot">-z</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">mpd_pid</span><span class="ot">)</span><span class="st">&quot;</span><span class="kw"> ]</span>
+    <span class="kw">then</span>
+       <span class="kw"> [[</span> <span class="st">&quot;</span><span class="ot">${START_PAUSED}</span><span class="st">&quot;</span> <span class="ot">=</span> true<span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="kw">\</span>
+            <span class="kw">sed</span> -i <span class="st">&quot;s/^state\:.*/state\:\ pause/;s/^time\:.*/time\:\ 0/&quot;</span> <span class="ot">${STATE_FILE}</span><span class="kw">;</span>
+        <span class="kw">mpd</span> <span class="kw">2&gt;</span>/dev/null<span class="kw">;</span>
+    <span class="kw">fi</span>
+<span class="kw">}</span>
+
+<span class="fu">quit       ()</span> <span class="kw">{</span> <span class="kw">hidegui;stop;mpd</span> --kill<span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">guipid     ()</span> <span class="kw">{</span> <span class="kw">echo</span> <span class="ot">$(</span><span class="kw">ps</span> -eo comm,pid=<span class="kw">|grep</span> -E <span class="st">&quot;</span><span class="ot">$MPD_GUI_CLIENT</span><span class="st">\ +[0-9]+&quot;</span><span class="kw">|awk</span> <span class="st">&#39;{print $2}&#39;</span><span class="ot">)</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">showgui    ()</span> <span class="kw">{</span> <span class="kw">start;eval</span> <span class="st">&quot;</span><span class="ot">${MPD_GUI_CLIENT}</span><span class="st"> 2&gt;/dev/null &amp;&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">hidegui    ()</span>
+<span class="kw">{</span>
+   <span class="kw"> [[</span> <span class="ot">-n</span> <span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span><span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="ot">pid=</span><span class="st">&quot;</span><span class="ot">$1</span><span class="st">&quot;</span> <span class="kw">||</span> <span class="ot">pid=$(</span><span class="kw">guipid</span><span class="ot">)</span>
+   <span class="kw"> [[</span> <span class="ot">-n</span> <span class="st">&quot;</span><span class="ot">$pid</span><span class="st">&quot;</span><span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="kw">kill</span> -9 <span class="ot">$pid</span>
+<span class="kw">}</span>
+
+<span class="fu">togglegui  ()</span>
+<span class="kw">{</span>
+    <span class="ot">pid=$(</span><span class="kw">guipid</span><span class="ot">)</span>
+   <span class="kw"> [[</span> <span class="ot">-z</span> <span class="st">&quot;</span><span class="ot">$pid</span><span class="st">&quot;</span><span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="kw">showgui</span> <span class="kw">||</span> <span class="kw">hidegui</span> <span class="ot">$pid</span>
+<span class="kw">}</span>
+
+<span class="fu">get_st     ()</span> <span class="kw">{</span> <span class="kw">mpc</span> status<span class="kw">|grep</span> -E <span class="st">&quot;^\[[a-z]+\].*&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">state      ()</span> <span class="kw">{</span> <span class="kw">echo</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">get_st|cut</span> -d<span class="st">&#39;[&#39;</span> -f2<span class="kw">|cut</span> -d] -f1<span class="ot">)</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">playing    ()</span> <span class="kw">{ [[</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">state</span><span class="ot">)</span><span class="st">&quot;</span> <span class="ot">=</span> <span class="st">&quot;playing&quot;</span><span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="kw">echo</span> <span class="st">&quot;true&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">paused     ()</span> <span class="kw">{ [[</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">state</span><span class="ot">)</span><span class="st">&quot;</span> <span class="ot">=</span> <span class="st">&quot;paused&quot;</span><span class="kw"> ]]</span>  <span class="kw">&amp;&amp;</span> <span class="kw">echo</span> <span class="st">&quot;true&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">position   ()</span> <span class="kw">{</span> <span class="kw">echo</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">get_st|awk</span> <span class="st">&#39;{print $3}&#39;</span><span class="kw">|cut</span> -d<span class="st">&#39;/&#39;</span> -f1<span class="ot">)</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">positionp  ()</span> <span class="kw">{</span> <span class="kw">echo</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">get_st|cut</span> -d<span class="st">&#39;\&#39;</span> -f1<span class="ot">)</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">position_o ()</span> <span class="kw">{</span> <span class="kw">echo</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">get_st|awk</span> <span class="st">&#39;{print $3&quot; &quot;$4}&#39;</span><span class="ot">)</span><span class="st">&quot;</span><span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">current    ()</span> <span class="kw">{</span> <span class="kw">mpc</span> current -f <span class="ot">${CURRENT_FORMAT}$(</span><span class="kw">position</span><span class="ot">)</span><span class="kw">;}</span>
+
+<span class="fu">next       ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q next<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">previous   ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q prev<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">play       ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q play<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">pause      ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q pause<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">playpause  ()</span> <span class="kw">{</span> <span class="kw">start;mpc</span> -q toggle<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">stop       ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q stop<span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">forward    ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q seek +10<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">rewind     ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q seek -10<span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">volup      ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q volume +5<span class="kw">;</span> <span class="kw">}</span>
+<span class="fu">voldown    ()</span> <span class="kw">{</span> <span class="kw">mpc</span> -q volume -5<span class="kw">;</span> <span class="kw">}</span>
+
+<span class="fu">osd        ()</span>
+<span class="kw">{</span>
+   <span class="kw"> [[</span> <span class="ot">-z</span> <span class="ot">$ICON_THEME</span><span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="kw">\</span>
+        <span class="ot">ICON_THEME=$(</span><span class="kw">grep</span> gtk-icon-theme-name <span class="ot">$HOME</span>/.gtkrc-2.0<span class="kw">|cut</span> -d<span class="st">&quot;</span><span class="dt">\&quot;</span><span class="st">&quot;</span> -f2<span class="ot">)</span>
+   <span class="kw"> [[</span> <span class="ot">-d</span> <span class="st">&quot;</span><span class="ot">$HOME</span><span class="st">/.local/share/icons/</span><span class="ot">${ICON_THEME}</span><span class="st">&quot;</span><span class="kw"> ]]</span>        <span class="kw">&amp;&amp;</span> <span class="kw">\</span>
+        <span class="ot">ICON_THEME=</span><span class="st">&quot;</span><span class="ot">$HOME</span><span class="st">/.local/share/icons/</span><span class="ot">${ICON_THEME}</span><span class="st">/&quot;</span> <span class="kw">||</span> <span class="kw">\</span>
+        <span class="ot">ICON_THEME=</span><span class="st">&quot;/usr/share/icons/</span><span class="ot">${ICON_THEME}</span><span class="st">/&quot;</span>
+    
+    <span class="ot">_icon=$(</span><span class="kw">eval</span> <span class="st">&quot;echo </span><span class="dt">\$</span><span class="st">{</span><span class="ot">$(</span><span class="kw">state|tr</span> <span class="dt">\&quot;</span>a-z<span class="dt">\&quot;</span> <span class="dt">\&quot;</span>A-Z<span class="dt">\&quot;</span><span class="ot">)</span><span class="st">_ICON}&quot;</span><span class="ot">)</span>
+    <span class="ot">ICON=${ICON_THEME}${ICON_SIZE}$_icon</span>
+
+    <span class="ot">_current=$(</span><span class="kw">current</span><span class="ot">)</span>
+    <span class="ot">ARTIST=$(</span><span class="kw">echo</span> <span class="ot">$_current</span><span class="kw">|awk</span> -F <span class="st">&quot;;;&quot;</span> <span class="st">&#39;{print $1}&#39;</span><span class="ot">)</span>
+    <span class="ot">ALBUM=$(</span><span class="kw">echo</span> <span class="ot">$_current</span><span class="kw">|awk</span> -F <span class="st">&quot;;;&quot;</span> <span class="st">&#39;{print $2}&#39;</span><span class="ot">)</span>
+    <span class="ot">TITLE=$(</span><span class="kw">echo</span> <span class="ot">$_current</span><span class="kw">|awk</span> -F <span class="st">&quot;;;&quot;</span> <span class="st">&#39;{print $3}&#39;</span><span class="ot">)</span>
+   <span class="kw"> [[</span> <span class="ot">-z</span> <span class="st">&quot;</span><span class="ot">${TITLE}</span><span class="st">&quot;</span><span class="kw"> ]]</span> <span class="kw">&amp;&amp;</span> <span class="ot">TITLE=</span><span class="st">&quot;...&quot;</span>
+
+    <span class="kw">notify-send</span> -u low -t 3000 --icon=<span class="ot">$ICON</span> \
+        <span class="st">&quot;</span><span class="ot">$TITLE</span><span class="st">&quot;</span> <span class="st">&quot;</span><span class="ot">$(</span><span class="kw">position_o</span><span class="ot">)</span><span class="st">\nby: </span><span class="ot">${ARTIST}</span><span class="st">\nfrom: </span><span class="ot">${ALBUM}</span><span class="st">&quot;</span>
+<span class="kw">}</span>
+
+<span class="co"># As usual in my scripts, $@ does all the magic</span>
+<span class="ot">$@</span>
+</code></pre></div>
+<div id="footer">
+<hr />
+<p id="social-links">
+<a href="http://www.github.com/pavelvr" title="Fork me on GitHub">pavelvr</a><span class="social-text-id">@github</span><br /> <a href="http://www.twitter.com/pavel_vr" title="Follow me on Twitter">pavel_vr</a><span class="social-text-id">@twitter</span><br /> <a href="http://www.linkedin.com/in/pavelvr" title="Add me on LinkedIn">pavelvr</a><span class="social-text-id">@linkedin</span><br /> <script type="text/javascript">
+<!--
+h='&#x67;&#x6d;&#x61;&#x69;&#108;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+'&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;'+'<\/'+'a'+'>');
+// -->
+</script><noscript>&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;&#32;&#40;&#110;&#x65;&#x6f;&#110;&#x73;&#x6b;&#x75;&#108;&#108;&#32;&#x61;&#116;&#32;&#x67;&#x6d;&#x61;&#x69;&#108;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;&#x29;</noscript><span class="social-text-id">@gmail</span><br /> <br /> <a href="../rss.xml" title="RSS 2.0 Feed">rss</a> <span class="social-text-id">feed</span>
+</p>
+<hr />
+<p id="copyright">
+Text: <a href="https://creativecommons.org/">CC BY-NC-SA</a><br /> Code: <a href="http://www.gnu.org/copyleft/gpl.html">GPLv3+</a><br /> <em>Havana</em>, <em>Cuba</em><br /> <em><strong>Infinite Fun</strong></em>, 2016
+</p>
+</div>
+<script type="text/javascript" src="../js/sizzle.min.js"></script>
+<script type="text/javascript" src="../js/my.js"></script>
+</body>
+</html>
